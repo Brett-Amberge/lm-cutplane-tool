@@ -8,6 +8,9 @@ from pxr import Usd, UsdGeom, Sdf, Tf, Gf
 # on_shutdown() is called.
 class CutplaneTool(omni.ext.IExt):
 
+    # Activate or deactivate a plane on the given axis
+    # @param isOn   Checks if the plane is currently active
+    # @param axis   Specifies which axis the plane is constrained to, i.e. "X"
     def spawn_plane(self, isOn, axis):
         transformVecs = {"Z": Gf.Vec3d(90, 0.0, 0.0), "Y": Gf.Vec3d(0.0, 0.0, 0.0), "X": Gf.Vec3d(0.0, 0.0, 90)}
         if isOn:
@@ -19,6 +22,10 @@ class CutplaneTool(omni.ext.IExt):
         else:
             omni.kit.commands.execute('DeletePrims', paths=['/World/lm_cutplane_tool/' + axis + 'Plane'])
 
+    # Translate the given plane along its axis by the given amount, if it is active
+    # @param isOn   Checks if the plane is currently active
+    # @param value  The amount by which to translate the plane, multiplied by 100
+    # @param axis   Speficies which plane is being shited, i.e. "X"
     def move_plane(self, isOn, value, axis):
         transformVecs = {"X": Gf.Vec3d(value*100, 0.0, 0.0), "Y": Gf.Vec3d(0.0, value*100, 0.0), "Z": Gf.Vec3d(0.0, 0.0, value*100)}
         if isOn:
@@ -29,6 +36,8 @@ class CutplaneTool(omni.ext.IExt):
         else:
             print('[lm.cutplane.tool] Activate ' + axis + ' cutplane first')
 
+    # Abstract container for setting up UI elements and functions
+    # @param axis   Which plane this UI element controls
     def plane_stack(self, axis):
         with ui.HStack():
             label = ui.Label(axis + "-axis")
@@ -51,15 +60,20 @@ class CutplaneTool(omni.ext.IExt):
         omni.kit.commands.execute('CreatePrimWithDefaultXform', prim_type='Scope', attributes={}, select_new_prim=False)
         omni.kit.commands.execute('MovePrims', paths_to_move={'/World/Scope': '/World/lm_cutplane_tool'})
 
-
+        # Set up the UI window
         with self._window.frame:
             with ui.VStack():
                 x = self.plane_stack("X")
                 y = self.plane_stack("Y")
                 z = self.plane_stack("Z")
 
+    # Shut down the extension and remove any active planes from the scene
     def on_shutdown(self):
-        if self._viewport_scene:
-            self._viewport_scene.destroy()
-            self._viewport_scene = None
+        # Remove any active planes from the scene
+        for plane in self._active_planes:
+            if self._active_planes[plane]:
+                omni.kit.commands.exectue('DeletePrims', paths=['/World/lm_cutplane_tool/' + plane + 'Plane'])
+
+        omni.kit.commands.execute('DeletePrims', paths=['/World/lm_cutplane_tool'])
+
         print("[lm.cutplane.tool] Cut Plane Tool shutdown")
