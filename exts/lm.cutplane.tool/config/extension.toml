@@ -25,6 +25,8 @@ preview_image = ""
 # Use omni.ui to build simple UI
 [dependencies]
 "omni.kit.uiapp" = {}
+"omni.usd" = {}
+"omni.kit.viewport.utility" = {}
 
 # Main python module this extension provides
 [[python.module]]
@@ -33,5 +35,6 @@ name = "lm.cutplane.tool"
 [[test]]
 # Extra dependencies only to be used during test run
 dependencies = [
-    "omni.kit.ui_test" # UI testing extension
+    "omni.kit.ui_test", # UI testing extension
+    "omni.kit.viewport.utility",
 ]
